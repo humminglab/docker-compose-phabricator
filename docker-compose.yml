@@ -1,0 +1,23 @@
+version: '3'
+services:
+  mariadb:
+    image: 'bitnami/mariadb:10.3'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - 'mariadb_data:/bitnami'
+  phabricator:
+    build:
+      context: .
+      dockerfile: phabricator/Dockerfile
+    labels:
+      kompose.service.type: nodeport
+    ports:
+      - '22:22'
+      - '8088:80'
+      - '9443:443'
+      - '22280:22280'
+    volumes:
+      - 'phabricator_data:/bitnami'
+    depends_on:
+      - mariadb
