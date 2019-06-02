@@ -10,6 +10,10 @@ WORKDIR /opt/bitnami/phabricator
 
 #RUN adduser --quiet --home /opt/bitnami/phabricator git
 
+RUN apt update && apt install -y python-pygments
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -s --
+RUN apt install -y nodejs && (cd /opt/bitnami/phabricator/support/aphlict/server; npm install ws)
+
 RUN bin/config set diffusion.ssh-port 22
 RUN bin/config set diffusion.ssh-user git
 RUN sed -e 's;/path/to/phabricator;/opt/bitnami/phabricator;' -e 's/vcs-user/git/' resources/sshd/phabricator-ssh-hook.sh > /opt/phabricator-ssh-hook.sh
@@ -24,6 +28,9 @@ RUN echo 'PATH=/usr/bin:/opt/bitnami/php/bin' >> /home/phabricator/.ssh/environm
 RUN echo 'PATH=/opt/bitnami/php/bin:$PATH' >> /home/phabricator/.bashrc
 RUN sed -e '3iexport PATH=/opt/bitnami/php/bin:$PATH' -i /opt/phabricator-ssh-hook.sh
 RUN sed -i 's;\(exec .*\);usermod --password \\* git\nusermod --unlock git\nchown git:git ~git/.ssh/environment\nservice ssh start\nsetfacl -Rm d:u:phabricator:rwX,u:phabricator:rwX /bitnami/phabricator/data/\n\1;' /app-entrypoint.sh
+
+RUN echo '<?php ' > /opt/bitnami/phabricator/support/preamble.php 
+RUN echo "\$_SERVER['HTTPS'] = true;" >> /opt/bitnami/phabricator/support/preamble.php
 
 EXPOSE 22
 
